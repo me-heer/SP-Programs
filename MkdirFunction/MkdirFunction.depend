@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1562051979 source:c:\users\mihir\desktop\mkdirfunction\main.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<dir.h>
+

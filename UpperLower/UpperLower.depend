@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1563263669 source:c:\users\mihir\desktop\upperlower\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1563887245 source:d:\learn\sem-5\sp\lab\upperlower\main.c
+	<stdio.h>
+	<conio.h>
+
