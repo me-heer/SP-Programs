@@ -111,6 +111,7 @@ void findFollow(char givenGrammar[5][11],int currentProduction)
                     if(givenGrammar[j][0] == c)
                         break;
                 }
+                findFirstExceptNull(givenGrammar,j);
                 int hasNull = hasNullInFIRST(givenGrammar,j);
                 if(hasNull)
                 {
@@ -122,54 +123,7 @@ void findFollow(char givenGrammar[5][11],int currentProduction)
     }
 }
 
-int* findFollowWithFormat(char givenGrammar[5][11],int currentProduction,int* formatArray)
-{
-    if(currentProduction == 0)
-    {
-        printf("$, ");
-        int tempID = getSymbolID('$');
-        formatArray[tempID] = 1;
-    }
 
-    int i;
-    char currentSymbol = givenGrammar[currentProduction][0];
-    for(i = 0; i < 5; i++)
-    {
-        char c = findSpecifiedNonTerminalAfterArrow(givenGrammar,i,currentSymbol);
-        //printf("RETURNED VALUE OF C: %c\n",c);
-        if(c != '#')
-        {
-            if(c == '@')
-            {
-                findFollowWithFormat(givenGrammar,i,formatArray);
-                break;
-            }
-            else if(!isNonTerminal(c) && c != '/')
-            {
-                printf("%c",c);
-                int ID = getSymbolID(c);
-                formatArray[ID] = 1;
-                break;
-            }
-            else if(isNonTerminal(c))
-            {
-                int j;
-                for( j = 0; j < 5; j++)
-                {
-                    if(givenGrammar[j][0] == c)
-                        break;
-                }
-                int hasNull = findFirst(givenGrammar,j);
-                if(hasNull)
-                {
-                    formatArray = findFollowWithFormat(givenGrammar,j,formatArray);
-                }
-                break;
-            }
-        }
-    }
-    return formatArray;
-}
 
 
 
@@ -332,16 +286,16 @@ int main()
         printf("}\n");
     }
     printf("\n");
-    /*
     for(int i = 0; i < 5; i++)
     {
         printf("FOLLOW(%c): { ",givenGrammar[i][0]);
         findFollow(givenGrammar,i);
         printf(" }\n");
     }
-    printf("\n");
-    */
 
+
+    printf("\n");
+    /*
     for(int i = 0; i < 5; i++)
     {
         int formatArray[6] = {0};
@@ -359,5 +313,6 @@ int main()
         //   findFollow(givenGrammar,i);
         printf("\n");
     }
+    */
 
 }
