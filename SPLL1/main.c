@@ -21,6 +21,20 @@ int getSymbolID(char c)
     }
 }
 
+char getSymbol(int i)
+{
+    switch(i)
+    {
+        case 0: return 'x'; break;
+        case 1: return '+'; break;
+        case 2: return '*'; break;
+        case 3: return '('; break;
+        case 4: return ')'; break;
+        case 5: return '$'; break;
+    }
+
+}
+
 int hasSlash(char givenGrammar[5][11], int i)
 {
     int j;
@@ -81,6 +95,67 @@ char findSpecifiedNonTerminalAfterArrow(char givenGrammar[5][11],int i,char spec
     return '#';
 }
 
+char followStack[20];
+int topFollow = -1;
+void pushFollow(char c)
+{
+    topFollow++;
+    followStack[topFollow] = c;
+}
+
+char popFollow()
+{
+    return followStack[topFollow--];
+}
+void displayFollow()
+{
+    for(int i = topFollow; i >= 0; i--)
+        printf("%c",followStack[i]);
+}
+
+void findFollowWithStack(char givenGrammar[5][11],int currentProduction)
+{
+    if(currentProduction == 0)
+            pushFollow('$');
+    int i;
+    char currentSymbol = givenGrammar[currentProduction][0];
+    for(i = 0; i < 5; i++)
+    {
+        char c = findSpecifiedNonTerminalAfterArrow(givenGrammar,i,currentSymbol);
+        //printf("RETURNED VALUE OF C: %c\n",c);
+        if(c != '#')
+        {
+            if(c == '@')
+            {
+                findFollowWithStack(givenGrammar,i);
+                break;
+            }
+            else if(!isNonTerminal(c) && c != '/')
+            {
+                pushFollow(c);
+                break;
+            }
+            else if(isNonTerminal(c))
+            {
+                int j;
+                for( j = 0; j < 5; j++)
+                {
+                    if(givenGrammar[j][0] == c)
+                        break;
+                }
+                findFirstExceptNullForStack(givenGrammar,j);
+                int hasNull = hasNullInFIRST(givenGrammar,j);
+                if(hasNull)
+                {
+                    findFollowWithStack(givenGrammar,j);
+                }
+                break;
+            }
+        }
+    }
+}
+
+
 void findFollow(char givenGrammar[5][11],int currentProduction)
 {
     if(currentProduction == 0)
@@ -123,10 +198,6 @@ void findFollow(char givenGrammar[5][11],int currentProduction)
     }
 }
 
-
-
-
-
 int hasNullInFIRST(char givenGrammar[5][11],int currentProduction)
 {
     int nullFlag = 0;
@@ -156,6 +227,35 @@ int hasNullInFIRST(char givenGrammar[5][11],int currentProduction)
         }
     }
     return nullFlag;
+}
+
+void findFirstExceptNullForStack(char givenGrammar[5][11],int currentProduction)
+{
+    if(isNonTerminalAfterArrow(givenGrammar,currentProduction))
+    {
+        char Muratiyo = findNonTerminalAfterArrow(givenGrammar,currentProduction);
+        int findNonTerminalIndex = 0;
+        for(findNonTerminalIndex = 0; findNonTerminalIndex < 5; findNonTerminalIndex++)
+        {
+            if(givenGrammar[findNonTerminalIndex][0] == Muratiyo)
+                break;
+        }
+        findFirstExceptNullForStack(givenGrammar,findNonTerminalIndex);
+    }
+    else
+    {
+        char c = findNonTerminalAfterArrow(givenGrammar,currentProduction);
+        if(c != 'e')
+            pushFollow(c);
+        //check for forward slash
+        int slashIndex = hasSlash(givenGrammar,currentProduction);
+        if(slashIndex != 0)
+        {
+            char c =  givenGrammar[currentProduction][slashIndex];
+            if(c != 'e')
+                pushFollow(c);
+        }
+    }
 }
 
 int findFirstExceptNull(char givenGrammar[5][11],int currentProduction)
@@ -235,6 +335,51 @@ int* findFirstExceptNullWithFormat(char givenGrammar[5][11],int currentProductio
     return formatArray;
 }
 
+char firstStack[20];
+int top = -1;
+void push(char c)
+{
+    top++;
+    firstStack[top] = c;
+}
+
+char pop()
+{
+    return firstStack[top--];
+}
+void display()
+{
+    for(int i = top; i >= 0; i--)
+        printf("%c",firstStack[i]);
+}
+
+void findFirstWithStack(char givenGrammar[5][11],int currentProduction)
+{
+    if(isNonTerminalAfterArrow(givenGrammar,currentProduction))
+    {
+        char Muratiyo = findNonTerminalAfterArrow(givenGrammar,currentProduction);
+        int findNonTerminalIndex = 0;
+        for(findNonTerminalIndex = 0; findNonTerminalIndex < 5; findNonTerminalIndex++)
+        {
+            if(givenGrammar[findNonTerminalIndex][0] == Muratiyo)
+                break;
+        }
+        findFirstWithStack(givenGrammar,findNonTerminalIndex);
+    }
+    else
+    {
+        if(findNonTerminalAfterArrow(givenGrammar,currentProduction) != 'e')
+            push(findNonTerminalAfterArrow(givenGrammar,currentProduction));
+        //check for forward slash
+        int slashIndex = hasSlash(givenGrammar,currentProduction);
+        if(slashIndex != 0)
+        {
+            if( givenGrammar[currentProduction][slashIndex] != 'e')
+                push(givenGrammar[currentProduction][slashIndex]);
+        }
+    }
+}
+
 void findFirst(char givenGrammar[5][11],int currentProduction)
 {
     if(isNonTerminalAfterArrow(givenGrammar,currentProduction))
@@ -295,6 +440,7 @@ int main()
 
 
     printf("\n");
+
     /*
     for(int i = 0; i < 5; i++)
     {
@@ -314,5 +460,51 @@ int main()
         printf("\n");
     }
     */
+    int LL1[5][6] = {0};
+    for(int index = 0; index < 5; index++)
+    {
+        findFirstWithStack(givenGrammar,index);
+        while(top >= 0)
+        {
+            char c = pop();
+            int i = getSymbolID(c);
+            LL1[index][i]++;
+        }
+        if(hasNullInFIRST(givenGrammar,index))
+        {
+            findFollowWithStack(givenGrammar,index);
+            while(topFollow >= 0)
+            {
+                int i;
+                char c = popFollow();
+                if(c != 'e')
+                    i = getSymbolID(c);
+                LL1[index][i]++;
+            }
+        }
 
+    }
+
+    int notLL1 = 0;
+    printf("   ");
+    for(int i = 0 ; i < 6; i++)
+    {
+        printf("%c ",getSymbol(i));
+    }
+    printf("\n");
+    for(int i = 0; i < 5; i++)
+    {
+        printf("%c: ",givenGrammar[i][0]);
+        for(int j = 0; j < 6; j++)
+        {
+            if(LL1[i][j] > 1)
+                notLL1 = 1;
+            printf("%d ",LL1[i][j]);
+        }
+        printf("\n");
+    }
+    if(notLL1)
+        printf("Given Grammar is not LL(1).\n");
+    else
+        printf("Given Grammar is LL(1).\n");
 }
